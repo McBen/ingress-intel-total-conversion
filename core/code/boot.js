@@ -253,6 +253,7 @@ try {
   '@include_raw:external/leaflet-src.js@';
   '@include_raw:external/L.Geodesic.js@';
   '@include_raw:external/Leaflet.GoogleMutant.js@';
+  '@include_raw:external/leaflet-rotate-src.js@';
   '@include_raw:external/oms.min.js@';
   L.CanvasIconLayer = (function (module) {
     '@include_raw:external/rbush.min.js@';

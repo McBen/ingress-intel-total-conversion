@@ -187,18 +187,29 @@ window.setupMap = function () {
 
   $('#map').text(''); // clear 'Loading, please wait'
 
-  var map = L.map('map', L.extend({
-    // proper initial position is now delayed until all plugins are loaded and the base layer is set
-    center: [0, 0],
-    zoom: 1,
-    crs: L.CRS.S2,
-    minZoom: window.MIN_ZOOM,
-    // zoomAnimation: false,
-    markerZoomAnimation: false,
-    bounceAtZoomLimits: false,
-    maxBoundsViscosity: 0.7,
-    worldCopyJump: true,
-  }, window.mapOptions));
+  var map = L.map(
+    'map',
+    L.extend(
+      {
+        // proper initial position is now delayed until all plugins are loaded and the base layer is set
+        center: [0, 0],
+        zoom: 1,
+        crs: L.CRS.S2,
+        minZoom: window.MIN_ZOOM,
+        // zoomAnimation: false,
+        markerZoomAnimation: false,
+        bounceAtZoomLimits: false,
+        maxBoundsViscosity: 0.7,
+        worldCopyJump: true,
+        rotate: true,
+        rotateControl: {
+          closeOnZeroBearing: false,
+        },
+        bearing: 30,
+      },
+      window.mapOptions
+    )
+  );
   var max_lat = map.options.crs.projection.MAX_LATITUDE;
   map.setMaxBounds([[max_lat, 360], [-max_lat, -360]]);
 
