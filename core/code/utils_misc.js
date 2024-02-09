@@ -296,18 +296,6 @@ window.selectPortalByLatLng = function(lat, lng) {
 };
 
 /**
- * Escapes special characters in a string for use in JavaScript.
- * (for strings passed as parameters to html onclick="..." for example)
- *
- * @function escapeJavascriptString
- * @param {string} str - The string to escape.
- * @returns {string} The escaped string.
- */
-window.escapeJavascriptString = function(str) {
-  return (str+'').replace(/[\\"']/g,'\\$&');
-}
-
-/**
  * Escapes HTML special characters in a string.
  *
  * @function escapeHtmlSpecialChars

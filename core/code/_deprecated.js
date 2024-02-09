@@ -162,3 +162,17 @@ window.findPortalLatLng = function (guid) {
   // no luck finding portal lat/lng
   return undefined;
 };
+
+
+/**
+ * Escapes special characters in a string for use in JavaScript.
+ * (for strings passed as parameters to html onclick="..." for example)
+ *
+ * @deprecated 
+ * @function escapeJavascriptString
+ * @param {string} str - The string to escape.
+ * @returns {string} The escaped string.
+ */
+window.escapeJavascriptString = function(str) {
+  return (str+'').replace(/[\\"']/g,'\\$&');
+}
