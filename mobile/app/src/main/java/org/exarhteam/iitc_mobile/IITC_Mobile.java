@@ -935,9 +935,16 @@ public class IITC_Mobile extends AppCompatActivity
         mReloadNeeded = false;
     }
 
-    // vp=f enables mDesktopMode mode...vp=m is the default mobile view
-    private String addUrlParam(final String url) {
-        return url + (url.contains("?") ? '&' : '?') + "vp=" + (mNavigationHelper.isDesktopActive() ? 'f' : 'm');
+    private static final String VIEWPORT_FULL = "f";
+    private static final String VIEWPORT_MOBILE = "m";
+
+    private String addViewportUrlParam(final String url) {
+        final String viewportValue = mNavigationHelper.isDesktopActive() ? VIEWPORT_FULL : VIEWPORT_MOBILE;
+        return Uri.parse(url)
+                .buildUpon()
+                .appendQueryParameter("vp", viewportValue)
+                .build()
+                .toString();
     }
 
     public void reset() {
@@ -955,7 +962,7 @@ public class IITC_Mobile extends AppCompatActivity
     public void loadUrl(String url) {
         reset();
         setLoadingState(true);
-        url = addUrlParam(url);
+        url = addViewportUrlParam(url);
         mIitcWebView.loadUrl(url);
     }
 
