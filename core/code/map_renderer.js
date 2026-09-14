@@ -406,8 +406,7 @@ IITC.map.Renderer.prototype.createPortalEntity = function (ent, details, lngE6_d
     const centerLng = window.map.getCenter().lng;
     lngE6_delta = Math.round((centerLng * 1e6 - data.lngE6) / (360 * 1e6)) * 360 * 1e6;
   }
-  data.lngE6 += lngE6_delta;
-  const latlng = new L.LatLng(data.latE6 / 1e6, data.lngE6 / 1e6);
+  const latlng = new L.LatLng(data.latE6 / 1e6, (data.lngE6 + lngE6_delta) / 1e6);
 
   let marker = undefined;
   if (oldPortal) {
@@ -466,14 +465,14 @@ IITC.map.Renderer.prototype.createFieldEntity = function (ent, lngE6_delta) {
     timestamp: ent[1],
     team: ent[2][1],
     points: ent[2][2].map(function (arr) {
-      return { guid: arr[0], latE6: arr[1], lngE6: arr[2] + lngE6_delta };
+      return { guid: arr[0], latE6: arr[1], lngE6: arr[2] };
     }),
   };
 
   // create placeholder portals for field corners. we already do links, but there are the odd case where this is useful
   for (let i = 0; i < 3; i++) {
     const p = data.points[i];
-    this.createPlaceholderPortalEntity(p.guid, p.latE6, p.lngE6, data.team, 0);
+    this.createPlaceholderPortalEntity(p.guid, p.latE6, p.lngE6 + lngE6_delta, data.team, 0);
   }
 
   // check if entity already exists
@@ -492,9 +491,9 @@ IITC.map.Renderer.prototype.createFieldEntity = function (ent, lngE6_delta) {
 
   const team = window.teamStringToId(ent[2][1]);
   const latlngs = [
-    new L.LatLng(data.points[0].latE6 / 1e6, data.points[0].lngE6 / 1e6),
-    new L.LatLng(data.points[1].latE6 / 1e6, data.points[1].lngE6 / 1e6),
-    new L.LatLng(data.points[2].latE6 / 1e6, data.points[2].lngE6 / 1e6),
+    new L.LatLng(data.points[0].latE6 / 1e6, (data.points[0].lngE6 + lngE6_delta) / 1e6),
+    new L.LatLng(data.points[1].latE6 / 1e6, (data.points[1].lngE6 + lngE6_delta) / 1e6),
+    new L.LatLng(data.points[2].latE6 / 1e6, (data.points[2].lngE6 + lngE6_delta) / 1e6),
   ];
 
   const poly = L.geodesicPolygon(latlngs, {
@@ -540,15 +539,15 @@ IITC.map.Renderer.prototype.createLinkEntity = function (ent, lngE6_delta) {
     team: ent[2][1],
     oGuid: ent[2][2],
     oLatE6: ent[2][3],
-    oLngE6: ent[2][4] + lngE6_delta,
+    oLngE6: ent[2][4],
     dGuid: ent[2][5],
     dLatE6: ent[2][6],
-    dLngE6: ent[2][7] + lngE6_delta,
+    dLngE6: ent[2][7],
   };
 
   // create placeholder entities for link start and end points (before checking if the link itself already exists
-  this.createPlaceholderPortalEntity(data.oGuid, data.oLatE6, data.oLngE6, data.team, data.timestamp);
-  this.createPlaceholderPortalEntity(data.dGuid, data.dLatE6, data.dLngE6, data.team, data.timestamp);
+  this.createPlaceholderPortalEntity(data.oGuid, data.oLatE6, data.oLngE6 + lngE6_delta, data.team, data.timestamp);
+  this.createPlaceholderPortalEntity(data.dGuid, data.dLatE6, data.dLngE6 + lngE6_delta, data.team, data.timestamp);
 
   // check if entity already exists
   if (ent[0] in window.links) {
@@ -562,7 +561,7 @@ IITC.map.Renderer.prototype.createLinkEntity = function (ent, lngE6_delta) {
   }
 
   const team = window.teamStringToId(ent[2][1]);
-  const latlngs = [new L.LatLng(data.oLatE6 / 1e6, data.oLngE6 / 1e6), new L.LatLng(data.dLatE6 / 1e6, data.dLngE6 / 1e6)];
+  const latlngs = [new L.LatLng(data.oLatE6 / 1e6, (data.oLngE6 + lngE6_delta) / 1e6), new L.LatLng(data.dLatE6 / 1e6, (data.dLngE6 + lngE6_delta) / 1e6)];
   const poly = L.geodesicPolyline(latlngs, {
     color: window.COLORS[team],
     ...IITC.map.Renderer.LINK_STYLE,
@@ -633,16 +632,11 @@ IITC.map.Renderer.prototype.removePortalFromMapLayer = function (portal) {
  * @param {Object} portal - The portal object to remove from the map layer.
  */
 IITC.map.Renderer.prototype.onAntiMeridianCrossed = function (offset) {
-  const offsetE6 = offset * 1e6;
-
-  console.log(`Render: antimeridian crossed, offsetting all entities by ${offset} degrees`);
-
   for (const guid in window.portals) {
     const portal = window.portals[guid];
     const latlng = portal.getLatLng();
     latlng.lng += offset;
     portal.setLatLng(latlng);
-    portal.options.data.lngE6 += offsetE6;
   }
 
   for (const guid in window.links) {
@@ -650,8 +644,6 @@ IITC.map.Renderer.prototype.onAntiMeridianCrossed = function (offset) {
     const latlngs = link.getLatLngs();
     latlngs.forEach((pos) => (pos.lng += offset));
     link.setLatLngs(latlngs);
-    link.options.data.oLngE6 += offsetE6;
-    link.options.data.dLngE6 += offsetE6;
   }
 
   for (const guid in window.fields) {
@@ -659,7 +651,6 @@ IITC.map.Renderer.prototype.onAntiMeridianCrossed = function (offset) {
     const latlngs = field.getLatLngs();
     latlngs.forEach((pos) => (pos.lng += offset));
     field.setLatLngs(latlngs);
-    field.options.data.points.forEach((point) => (point.lngE6 += offsetE6));
   }
 };
 
