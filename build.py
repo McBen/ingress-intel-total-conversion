@@ -4,6 +4,7 @@
 
 import os
 import shutil
+import subprocess
 from pathlib import Path
 from runpy import run_path
 
@@ -47,6 +48,17 @@ def run_cmds(cmds, source, target):
             ))
 
 
+def check_javascript(directory):
+    node = shutil.which('node') or shutil.which('nodejs')
+    if not node:
+        raise UserWarning('JavaScript syntax check requires node or nodejs')
+
+    for filename in sorted(directory.rglob('*.js')):
+        result = subprocess.run([node, '--check', str(filename)], check=False)
+        if result.returncode:
+            raise UserWarning(f'JavaScript syntax check failed: {filename}')
+
+
 def iitc_build(source, outdir, deps_list=None):
     settings.generate_timestamps()
     run_cmds(settings.pre_build, source, outdir)
@@ -63,6 +75,7 @@ def iitc_build(source, outdir, deps_list=None):
             deps_list=deps_list
         )
 
+    check_javascript(outdir)
     run_cmds(settings.post_build, source, outdir)
 
 
