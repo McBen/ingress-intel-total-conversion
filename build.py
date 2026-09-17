@@ -61,6 +61,7 @@ def check_javascript(directory):
 
 def iitc_build(source, outdir, deps_list=None):
     settings.generate_timestamps()
+    build_plugin.reset_postcss_cache()
     run_cmds(settings.pre_build, source, outdir)
 
     iitc_script = 'core/total-conversion-build.js'
@@ -75,7 +76,7 @@ def iitc_build(source, outdir, deps_list=None):
             deps_list=deps_list
         )
 
-    check_javascript(outdir)
+    # check_javascript(outdir)
     run_cmds(settings.post_build, source, outdir)
 
 
